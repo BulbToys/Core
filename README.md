@@ -6,13 +6,15 @@ This repository is currently an **early work-in-progress**, any and all informat
 
 # Usage
 ### Requirements
-As BulbToys is an internal cheat, it currently only supports DirectX 9 games. This project does not include an injector, so you will need to use your own (eg. [Ultimate ASI Loader](https://github.com/ThirteenAG/Ultimate-ASI-Loader) or [Xenos](https://github.com/DarthTon/Xenos)).
+BulbToys is an internal cheat designed as a DLL and it currently only supports DirectX 9 games.
+
+This project does not include an injector, so you will need to use your own (eg. [Ultimate ASI Loader](https://github.com/ThirteenAG/Ultimate-ASI-Loader) or [Xenos](https://github.com/DarthTon/Xenos)) in case your game doesn't have an adequate DLL plugin loader.
 
 ### Setup
 *todo*
 
 ### Namespaces
-BulbToys exposes 6 namespaces for the user:
+BulbToys exposes 5 namespaces for the user:
 - Global (`::`) - Contains helper & utility functions and classes/structs, such as `Read<T>` and `Write<T>`
 - `Hooks::` - Contains function hooks, applied either as soon as the trainer is initialized (eg. DirectX, for rendering) or on demand through other means
   - It is also meant to contain user-defined game function hooks
