@@ -57,7 +57,7 @@ public:
 		}();
 		uint32_t value = default_value;
 	public:
-		Int32(ValidateFn<uint32_t>* Validate = nullptr)
+		UInt32(ValidateFn<uint32_t>* Validate = nullptr)
 		{
 			if (Settings::Get())
 			{
