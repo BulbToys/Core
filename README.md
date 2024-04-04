@@ -1,5 +1,5 @@
-# BulbToys/Base
-This repository contains all the required files to create a BulbToys trainer, including [MinHook](https://github.com/TsudaKageyu/minhook) and [ImGui](https://github.com/ocornut/imgui).
+# BulbToys/base
+This repository contains all the required files to create a BulbToys trainer, including [MinHook](https://github.com/TsudaKageyu/minhook), [mINI](https://github.com/metayeti/mINI) and [ImGui](https://github.com/ocornut/imgui).
 
 ### Disclaimer
 This repository is currently an **early work-in-progress**, any and all information is subject to change without notice and may be missing or incorrect.
