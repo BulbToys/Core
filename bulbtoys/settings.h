@@ -47,6 +47,36 @@ public:
 		int& Get() { return value; }
 	};
 
+	/* ===== U I N T 3 2 ===== */
+	template <StringLiteral section, StringLiteral key, uint32_t default_value>
+	class UInt32
+	{
+		inline static bool init = []() {
+			Settings::ini[section.str][key.str] = std::to_string(default_value);
+			return true;
+		}();
+		uint32_t value = default_value;
+	public:
+		Int32(ValidateFn<uint32_t>* Validate = nullptr)
+		{
+			if (Settings::Get())
+			{
+				if (sscanf_s(Settings::ini[section.str][key.str].c_str(), "%u", &value) == 1)
+				{
+					if (Validate)
+					{
+						if (!Validate(value))
+						{
+							value = default_value;
+						}
+					}
+				}
+			}
+		}
+
+		uint32_t& Get() { return value; }
+	};
+
 	/* ===== U I N T 8 ===== */
 	template <StringLiteral section, StringLiteral key, uint8_t default_value>
 	class UInt8
