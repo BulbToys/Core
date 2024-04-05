@@ -11,8 +11,6 @@
 
 DWORD WINAPI BulbToys_Main(LPVOID lpThreadParameter)
 {
-	constexpr DWORD time = 200;
-
 	BulbToys::SetupParams params = *(BulbToys::SetupParams*)lpThreadParameter;
 	HeapFree(GetProcessHeap(), 0, lpThreadParameter);
 
@@ -22,9 +20,13 @@ DWORD WINAPI BulbToys_Main(LPVOID lpThreadParameter)
 		return 0;
 	}
 
-	while (!io->Done())
+	auto io = IO::Get();
+	if (io)
 	{
-		Sleep(time);
+		while (!io->Done())
+		{
+			Sleep(200);
+		}
 	}
 
 	BulbToys::End();
@@ -56,7 +58,7 @@ void BulbToys::Setup(BulbToys::SetupParams& params)
 	}
 }
 
-bool BulbToys::Init(BulbToys::SetupParams& params)
+bool BulbToys::Init(BulbToys::SetupParams& params, bool thread)
 {
 	// Hooks
 	if (Hooks::Init() != MH_OK)
@@ -88,9 +90,20 @@ bool BulbToys::Init(BulbToys::SetupParams& params)
 				return true;
 			}
 
-			while (!(params.device = params.GetDevice()))
+			if (thread)
 			{
-				Sleep(time);
+				while (!(params.device = params.GetDevice()))
+				{
+					Sleep(200);
+				}
+			}
+			else
+			{
+				if (!(params.device = params.GetDevice()))
+				{
+					// Init successful, but no GUI
+					return true;
+				}
 			}
 		}
 
