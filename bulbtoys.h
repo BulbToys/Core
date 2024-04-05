@@ -4,10 +4,7 @@
 	Welcome to the user-friendly BulbToys header file.
 
 	Everything you will ever need is right here; there is no reason to touch any of the CPP nor any of the other headers.
-	Feel free to include whichever individual header files you need, or all of them (this entire file).
-
-	Most of the following header filse provide pseudocode examples, check 'em out!
-	These are NOT guaranteed to be compilable or even valid C++, but they should (hopefully) be good enough to serve as a guide.
+	Feel free to include whichever individual header files you need, or all of them (ie. this entire file).
 */
 
 // Contains setup procedures necessary for initialization
