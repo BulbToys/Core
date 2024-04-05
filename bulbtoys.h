@@ -16,6 +16,9 @@
 // Contains the module framework - the main way to make your trainer do stuff
 #include "bulbtoys/module.h"
 
+// Contains initialization file (INI) reading functionality
+#include "bulbtoys/settings.h"
+
 // Contains ImGui functionality, in-house widgets, and a custom window framework
 #include "bulbtoys/my_imgui.h"
 
