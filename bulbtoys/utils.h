@@ -106,6 +106,17 @@ inline void Write(uintptr_t address, T value)
 	*reinterpret_cast<T*>(address) = value;
 }
 
+template <typename T>
+inline void WriteArray(uintptr_t address, std::initializer_list<T> list)
+{
+	T* array = reinterpret_cast<T*>(address);
+
+	for (int i = 0; i < list.size(); i++)
+	{
+		array[i] = list.begin()[i];
+	}
+}
+
 // Returns THE ADDRESS to the virtual function at <index> in the virtual table of this_
 template <int index>
 inline uintptr_t Virtual(uintptr_t this_)
@@ -125,9 +136,15 @@ template <typename T>
 inline void Patch(uintptr_t address, T value)
 {
 	new PatchInfo(address, sizeof(T));
+	Write<T>(address, value);
+}
 
-	T* memory = reinterpret_cast<T*>(address);
-	*memory = value;
+// Identical to WriteArray, except it gets added to the patch map (for later unpatching)
+template <typename T>
+inline void PatchArray(uintptr_t address, std::initializer_list<T> list)
+{
+	new PatchInfo(address, sizeof(T) * list.size());
+	WriteArray<T>(address, list);
 }
 
 /* ===== Functions ===== */
