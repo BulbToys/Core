@@ -11,27 +11,9 @@ MH_STATUS Hooks::Init()
 	return status;
 }
 
-MH_STATUS Hooks::End(bool clean_up)
+MH_STATUS Hooks::End()
 {
-	MH_STATUS status;
-	if (clean_up)
-	{
-		status = MH_DisableHook(MH_ALL_HOOKS);
-		if (status != MH_OK)
-		{
-			Error("Failed to disable all hooks: %s", MH_StatusToString(status));
-			return status;
-		}
-
-		status = MH_RemoveHook(MH_ALL_HOOKS);
-		if (status != MH_OK)
-		{
-			Error("Failed to remove all hooks: %s", MH_StatusToString(status));
-			return status;
-		}
-	}
-
-	status = MH_Uninitialize();
+	auto status = MH_Uninitialize();
 	if (status != MH_OK)
 	{
 		Error("Failed to uninitialize MinHook: %s", MH_StatusToString(status));
@@ -56,6 +38,8 @@ bool Hooks::Create(void* address, void* hook, void* call)
 		Error("Failed to enable hook 0x%p: %s", address, MH_StatusToString(status));
 		return false;
 	}
+
+	new PatchInfo(reinterpret_cast<uintptr_t>(address), 1);
 	return true;
 }
 
@@ -79,6 +63,8 @@ bool Hooks::Destroy(void* address)
 		Error("Failed to remove hook 0x%p: %s", address, MH_StatusToString(status));
 		return false;
 	}
+
+	Unpatch(reinterpret_cast<uintptr_t>(address));
 	return true;
 }
 

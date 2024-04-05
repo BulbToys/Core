@@ -178,3 +178,24 @@ IWindow::IWindow(const char* fmt, ...)
 	this->Construct(true, ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoScrollbar, fmt, va);
 	va_end(va);
 }
+
+void IWindow::DestroyAll()
+{
+	auto iter = queue.begin();
+	while (iter != queue.end())
+	{
+		auto window = *iter;
+
+		queue.erase(iter);
+		delete window;
+	}
+
+	auto iter_2 = list.begin();
+	while (iter_2 != list.end())
+	{
+		auto window = *iter_2;
+
+		list.erase(iter_2);
+		delete window;
+	}
+}

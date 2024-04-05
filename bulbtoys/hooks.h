@@ -6,5 +6,5 @@
 namespace Hooks
 {
 	MH_STATUS Init();
-	MH_STATUS End(bool clean_up);
+	MH_STATUS End();
 }

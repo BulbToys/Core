@@ -54,16 +54,7 @@ LRESULT CALLBACK IO::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		// As the queue only gets serviced in the GUI, which in this case doesn't exist, we, unfortunately, MUST service the queue here instead
 		// We normally don't service the IWindow queue here as it's unnecessary - windows won't be rendered until the next frame anyways
 		// Hence why this is done in the ID3DDevice9::EndScene hook, right before we tell our GUI to render all our ImGui widgets
-		auto& queue = IWindow::Queue();
-
-		auto iter = queue.begin();
-		while (iter != queue.end())
-		{
-			auto window = *iter;
-
-			queue.erase(iter);
-			delete window;
-		}
+		IWindow::DestroyAll();
 
 		return CallWindowProc(this_->original_wndproc, hWnd, uMsg, wParam, lParam);
 	}

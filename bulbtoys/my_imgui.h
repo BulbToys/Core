@@ -79,4 +79,6 @@ public:
 	// Don't modify these lists, the GUI already does it for you
 	static auto& List() { return list; }
 	static auto& Queue() { return queue; }
+
+	static void DestroyAll();
 };

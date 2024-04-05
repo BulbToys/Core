@@ -137,15 +137,15 @@ void BulbToys::End()
 		settings->End();
 	}
 
-	// TODO: should this even be an option?
-	bool safe = true;
-
 	// Hooks
-	Hooks::End(safe);
-
-	// Patches must be last as they're technically a part of hooks as well
-	if (safe)
+	if (Hooks::End() != MH_OK)
 	{
-		PatchInfo::UndoAll();
+		DIE();
+	}
+
+	// Final sanity check to make sure all our patches and hooks are gone
+	if (PatchInfo::SanityCheck())
+	{
+		DIE();
 	}
 }

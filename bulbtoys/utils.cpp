@@ -135,7 +135,7 @@ bool IFileBase::LoadDialog(const char* title, const char* filter, const char* de
 	return false;
 }
 
-PatchInfo::PatchInfo(uintptr_t patch_address, size_t patch_len, bool use_vprot)
+PatchInfo::PatchInfo(uintptr_t patch_address, size_t patch_len)
 {
 	ASSERT(patch_address);
 	ASSERT(patch_len);
@@ -145,7 +145,6 @@ PatchInfo::PatchInfo(uintptr_t patch_address, size_t patch_len, bool use_vprot)
 
 	this->address = patch_address;
 	this->len = patch_len;
-	this->vprot = use_vprot;
 
 	this->bytes = new char[patch_len];
 	memcpy(this->bytes, reinterpret_cast<void*>(patch_address), patch_len);
@@ -167,18 +166,26 @@ PatchInfo* PatchInfo::Find(uintptr_t address)
 	return PatchInfo::map.at(address);
 }
 
-void PatchInfo::UndoAll()
+bool PatchInfo::SanityCheck()
 {
 	auto& map = PatchInfo::map;
 
-	auto iter = map.begin();
-	while (iter != map.end())
+	auto leftovers = map.size();
+	if (leftovers > 0)
 	{
-		auto patch = iter->second;
+		std::string patches;
 
-		map.erase(iter);
-		delete patch;
+		auto iter = map.begin();
+		while (iter != map.end())
+		{
+			auto patch = iter->second;
+			patches += "\n- " + std::to_string(patch->address);
+		}
+
+		Error("%d leftover patch(es)/hook(s) found: %s", leftovers, patches.c_str());
+		return false;
 	}
+	return true;
 }
 
 void Error(const char* message, ...)
@@ -193,7 +200,7 @@ void Error(const char* message, ...)
 
 void PatchNOP(uintptr_t address, int count)
 {
-	auto patch = new PatchInfo(address, count);
+	new PatchInfo(address, count);
 	memset(reinterpret_cast<void*>(address), 0x90, count);
 }
 
@@ -201,7 +208,7 @@ void PatchJMP(uintptr_t address, void* asm_func, size_t patch_len)
 {
 	ASSERT(patch_len >= 5);
 
-	auto patch = new PatchInfo(address, patch_len);
+	new PatchInfo(address, patch_len);
 
 	ptrdiff_t relative = reinterpret_cast<uintptr_t>(asm_func) - address - 5;
 
@@ -218,7 +225,15 @@ void PatchJMP(uintptr_t address, void* asm_func, size_t patch_len)
 void Unpatch(uintptr_t address, bool force_unpatch)
 {
 	auto patch = PatchInfo::Find(address);
-	ASSERT(!patch && force_unpatch);
+	if (!patch)
+	{
+		if (force_unpatch)
+		{
+			Error("Tried to Unpatch() non-existent patch %08X in force mode.", address);
+			DIE();
+		}
+		return;
+	}
 
 	memcpy(reinterpret_cast<void*>(address), patch->Bytes(), patch->Len());
 	delete patch;

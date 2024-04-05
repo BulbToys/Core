@@ -54,9 +54,8 @@ class PatchInfo
 
 	uintptr_t address = 0;
 	size_t len = 0;
-	bool vprot = false;
 public:
-	PatchInfo(uintptr_t address, size_t len, bool use_vprot = false);
+	PatchInfo(uintptr_t address, size_t len);
 	~PatchInfo();
 
 	inline char* Bytes() { return bytes; }
@@ -64,7 +63,7 @@ public:
 
 	static PatchInfo* Find(uintptr_t address);
 
-	static void UndoAll();
+	static bool SanityCheck();
 };
 
 // Wrapper for string literals, primarily used for template arguments
@@ -125,7 +124,7 @@ inline uintptr_t PtrVirtual(uintptr_t this_)
 template <typename T>
 inline void Patch(uintptr_t address, T value)
 {
-	auto patch = new PatchInfo(address, sizeof(T));
+	new PatchInfo(address, sizeof(T));
 
 	T* memory = reinterpret_cast<T*>(address);
 	*memory = value;
@@ -141,4 +140,4 @@ void PatchNOP(uintptr_t address, int count = 1);
 // NOTE: The jump instruction is 5 bytes
 void PatchJMP(uintptr_t address, void* asm_func, size_t patch_len = 5);
 
-void Unpatch(uintptr_t address, bool low_priority = false);
+void Unpatch(uintptr_t address, bool force_unpatch = true);

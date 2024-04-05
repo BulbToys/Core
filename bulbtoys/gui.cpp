@@ -157,6 +157,7 @@ GUI::GUI(IDirect3DDevice9* device, HWND window)
 	ImGui_ImplWin32_Init(window);
 	ImGui_ImplDX9_Init(device);
 
+	// TODO: vtable patches do not work for these?
 	Hooks::Create(ID3D9_ENDSCENE(), &ID3DDevice9_EndScene_, &ID3DDevice9_EndScene);
 	Hooks::Create(ID3D9_RESET(), &ID3DDevice9_Reset_, &ID3DDevice9_Reset);
 }
@@ -170,6 +171,8 @@ GUI::~GUI()
 	ImGui_ImplWin32_Shutdown();
 
 	ImGui::DestroyContext();
+	
+	IWindow::DestroyAll();
 }
 
 void GUI::Render()
@@ -218,29 +221,34 @@ void GUI::Render()
 
 HRESULT __stdcall GUI::ID3DDevice9_EndScene_(IDirect3DDevice9* device)
 {
-	const auto result = GUI::ID3DDevice9_EndScene(device);
+	auto result = GUI::ID3DDevice9_EndScene(device);
 
-	ImGui_ImplDX9_NewFrame();
-	ImGui_ImplWin32_NewFrame();
-	ImGui::NewFrame();
-
-	// Push all windows from the queue into the list
-	auto& queue = IWindow::Queue();
-	auto iter = queue.begin();
-	while (iter != queue.end())
+	// TODO: why does this fucking hook still exist even after the GUI has been destroyed ??????????
+	auto gui = GUI::Get();
+	if (gui)
 	{
-		auto window = *iter;
+		ImGui_ImplDX9_NewFrame();
+		ImGui_ImplWin32_NewFrame();
+		ImGui::NewFrame();
 
-		queue.erase(iter);
-		IWindow::List().push_back(window);
+		// Push all windows from the queue into the list
+		auto& queue = IWindow::Queue();
+		auto iter = queue.begin();
+		while (iter != queue.end())
+		{
+			auto window = *iter;
+
+			queue.erase(iter);
+			IWindow::List().push_back(window);
+		}
+
+		// TODO: frame count fixes?
+		gui->Render();
+
+		ImGui::EndFrame();
+		ImGui::Render();
+		ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData());
 	}
-
-	// TODO: frame count fixes?
-	GUI::Get()->Render();
-
-	ImGui::EndFrame();
-	ImGui::Render();
-	ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData());
 
 	return result;
 }
