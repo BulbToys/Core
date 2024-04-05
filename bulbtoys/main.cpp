@@ -16,64 +16,18 @@ DWORD WINAPI BulbToys_Main(LPVOID lpThreadParameter)
 	BulbToys::SetupParams params = *(BulbToys::SetupParams*)lpThreadParameter;
 	HeapFree(GetProcessHeap(), 0, lpThreadParameter);
 
-	/*
-		Hooks -> Settings -> Modules -> IO -> GUI
-	*/
-
-	if (Hooks::Init() != MH_OK)
+	if (!BulbToys::Init(params))
 	{
 		FreeLibraryAndExitThread(params.instance, 0);
 		return 0;
 	}
-
-	auto settings = Settings::Get(params.settings_file);
-
-	Modules::Init();
-
-	if (!params.device)
-	{
-		if (!params.GetDevice)
-		{
-			Error("Setup unsuccessful: No device found and no GetDevice function was passed");
-			FreeLibraryAndExitThread(params.instance, 0);
-			return 0;
-		}
-
-		while (!(params.device = params.GetDevice()))
-		{
-			Sleep(time);
-		}
-	}
-
-	D3DDEVICE_CREATION_PARAMETERS d3d_params;
-	params.device->GetCreationParameters(&d3d_params);
-	HWND window = d3d_params.hFocusWindow;
-	
-	auto io = IO::Get(window);
-
-	Settings::Bool<"BulbToys", "UseGUI", true> use_gui;
-	auto gui = use_gui.Get() ? GUI::Get(params.device, window) : nullptr;
 
 	while (!io->Done())
 	{
 		Sleep(time);
 	}
 
-	if (gui)
-	{
-		gui->End();
-	}
-
-	io->End();
-
-	Modules::End();
-
-	if (settings)
-	{
-		settings->End();
-	}
-
-	Hooks::End(true);
+	BulbToys::End();
 
 	FreeLibraryAndExitThread(params.instance, 0);
 	return 0;
@@ -100,4 +54,76 @@ void BulbToys::Setup(BulbToys::SetupParams& params)
 	{
 		CloseHandle(thread);
 	}
+}
+
+bool BulbToys::Init(BulbToys::SetupParams& params)
+{
+	// Hooks
+	if (Hooks::Init() != MH_OK)
+	{
+		return false;
+	}
+
+	// Settings
+	Settings::Get(params.settings_file);
+
+	// Modules
+	Modules::Init();
+
+	// IO
+	D3DDEVICE_CREATION_PARAMETERS d3d_params;
+	params.device->GetCreationParameters(&d3d_params);
+	auto window = d3d_params.hFocusWindow;
+	IO::Get(window);
+
+	// GUI
+	Settings::Bool<"BulbToys", "UseGUI", true> use_gui;
+	if (use_gui.Get())
+	{
+		if (!params.device)
+		{
+			if (!params.GetDevice)
+			{
+				// Init successful, but no GUI
+				return true;
+			}
+
+			while (!(params.device = params.GetDevice()))
+			{
+				Sleep(time);
+			}
+		}
+
+		GUI::Get(params.device, window);
+	}
+}
+
+void BulbToys::End()
+{
+	// GUI
+	auto gui = GUI::Get();
+	if (gui)
+	{
+		gui->End();
+	}
+
+	// IO
+	auto io = IO::Get();
+	if (io)
+	{
+		io->End();
+	}
+
+	// Modules
+	Modules::End();
+
+	// Settings
+	auto settings = Settings::Get();
+	if (settings)
+	{
+		settings->End();
+	}
+
+	// Hooks
+	Hooks::End(true);
 }

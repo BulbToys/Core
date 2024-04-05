@@ -32,6 +32,9 @@ namespace BulbToys
 	};
 
 	void Setup(SetupParams& params);
+
+	bool Init(SetupParams& params);
+	void End();
 }
 
 // Here is an example on how to initialize BulbToys for your DLL:
