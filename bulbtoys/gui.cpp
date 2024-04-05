@@ -224,6 +224,7 @@ HRESULT __stdcall GUI::ID3DDevice9_EndScene_(IDirect3DDevice9* device)
 	ImGui_ImplWin32_NewFrame();
 	ImGui::NewFrame();
 
+	// Push all windows from the queue into the list
 	auto& queue = IWindow::Queue();
 	auto iter = queue.begin();
 	while (iter != queue.end())
@@ -256,6 +257,7 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND, UINT, WPARAM,
 
 LRESULT CALLBACK GUI::WndProc(WNDPROC original_wndproc, HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+	// Only process input if we have any windows open
 	if (IWindow::List().size() > 0 && ImGui_ImplWin32_WndProcHandler(hWnd, uMsg, wParam, lParam))
 	{
 		// TODO: broken in some games? only other replacement is hooking 10 different winapi functions though
@@ -354,17 +356,29 @@ bool MainWindow::Draw()
 	/* ===== [ M A I N ] ===== */
 	if (ImGui::BulbToys_Menu("[Main]"))
 	{
+		// We want all windows to disable this button once it's been clicked
+		static bool disable_detach = false;
+		if (disable_detach)
+		{
+			ImGui::BeginDisabled();
+		}
+
 		// Detach & Confirm
 		if (ImGui::Button("Detach"))
 		{
 			if (this->confirm_close)
 			{
 				IO::Get()->Detach();
-				this->confirm_close = false;
+				disable_detach = true;
 			}
 		}
 		ImGui::SameLine();
 		ImGui::Checkbox("Confirm", &this->confirm_close);
+
+		if (disable_detach)
+		{
+			ImGui::EndDisabled();
+		}
 
 		ImGui::Separator();
 

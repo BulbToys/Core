@@ -14,7 +14,7 @@ DWORD WINAPI BulbToys_Main(LPVOID lpThreadParameter)
 	BulbToys::SetupParams params = *(BulbToys::SetupParams*)lpThreadParameter;
 	HeapFree(GetProcessHeap(), 0, lpThreadParameter);
 
-	if (!BulbToys::Init(params))
+	if (!BulbToys::Init(params, true))
 	{
 		FreeLibraryAndExitThread(params.instance, 0);
 		return 0;
@@ -72,6 +72,31 @@ bool BulbToys::Init(BulbToys::SetupParams& params, bool thread)
 	// Modules
 	Modules::Init();
 
+	if (!params.device)
+	{
+		if (!params.GetDevice)
+		{
+			// Partial success - no IO or GUI
+			return true;
+		}
+
+		if (thread)
+		{
+			while (!(params.device = params.GetDevice()))
+			{
+				Sleep(200);
+			}
+		}
+		else
+		{
+			if (!(params.device = params.GetDevice()))
+			{
+				// Partial success - no IO or GUI
+				return true;
+			}
+		}
+	}
+
 	// IO
 	D3DDEVICE_CREATION_PARAMETERS d3d_params;
 	params.device->GetCreationParameters(&d3d_params);
@@ -82,31 +107,6 @@ bool BulbToys::Init(BulbToys::SetupParams& params, bool thread)
 	Settings::Bool<"BulbToys", "UseGUI", true> use_gui;
 	if (use_gui.Get())
 	{
-		if (!params.device)
-		{
-			if (!params.GetDevice)
-			{
-				// Init successful, but no GUI
-				return true;
-			}
-
-			if (thread)
-			{
-				while (!(params.device = params.GetDevice()))
-				{
-					Sleep(200);
-				}
-			}
-			else
-			{
-				if (!(params.device = params.GetDevice()))
-				{
-					// Init successful, but no GUI
-					return true;
-				}
-			}
-		}
-
 		GUI::Get(params.device, window);
 	}
 }
@@ -137,6 +137,15 @@ void BulbToys::End()
 		settings->End();
 	}
 
+	// TODO: should this even be an option?
+	bool safe = true;
+
 	// Hooks
-	Hooks::End(true);
+	Hooks::End(safe);
+
+	// Patches must be last as they're technically a part of hooks as well
+	if (safe)
+	{
+		PatchInfo::UndoAll();
+	}
 }

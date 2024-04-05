@@ -3,11 +3,6 @@
 
 #include "../imgui/imgui.h"
 
-/*
-	This header offers ImGui functionality, as well as in-house widgets for you to use for the main window or overlay.
-	This header also offers the ability to create your own windows.
-*/
-
 namespace ImGui
 {
 	// ListBox with text at the top
@@ -85,31 +80,3 @@ public:
 	static auto& List() { return list; }
 	static auto& Queue() { return queue; }
 };
-
-// Here is an example on how to create your own window
-// For more inspiration, check out MainWindow and MemoryWindow
-#if 0
-class MyWindow : public IWindow
-{
-	int cool_number = 69;
-public:
-	MyWindow(int cool_number) : cool_number(cool_number) {}
-	~MyWindow() override final {}
-
-	virtual bool Draw() override final { ImGui::Text("My cool number: %d", cool_number); return true; }
-};
-
-class FuckWindow : public IWindow
-{
-	Settings::Int32<"FuckWindow", "Int32", 69> bumber { +[](int i) { return i < 100; } };
-public:
-	FuckWindow() : IWindow("Fuck Window") {}
-	~FuckWindow() override final {}
-
-	virtual bool Draw() override final
-	{
-		ImGui::BulbToys_InputInt("Fuck Int:", "##FUCKING", &bumber.Get());
-		return true;
-	}
-};
-#endif

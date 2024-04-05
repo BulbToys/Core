@@ -167,6 +167,20 @@ PatchInfo* PatchInfo::Find(uintptr_t address)
 	return PatchInfo::map.at(address);
 }
 
+void PatchInfo::UndoAll()
+{
+	auto& map = PatchInfo::map;
+
+	auto iter = map.begin();
+	while (iter != map.end())
+	{
+		auto patch = iter->second;
+
+		map.erase(iter);
+		delete patch;
+	}
+}
+
 void Error(const char* message, ...)
 {
 	char buffer[1024];

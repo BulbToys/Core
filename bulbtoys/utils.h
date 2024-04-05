@@ -2,21 +2,15 @@
 #include <Windows.h>
 #include <unordered_map>
 
-/*
-	This header contains various utility and helper functions/structures, such as:
-		1. ASSERT(condition) and various other macros
-		2. Error("Message") and various other helper funcs
-		3. Read<T> and Write<T> for very basic memory access
-		4. IFile for saving and loading structs to and from files
-		5. Patch<T>, PatchNOP, PatchJMP and Unpatch for patching functionality (memory writes that you can undo)
-*/
-
 #define PROJECT_NAME "BulbToys"
 
 #define DIE() *((int*)0xDEAD) = 0
 #define ASSERT(cond) do { if (!(cond)) { Error("Assertion failed: " #cond); DIE(); } } while (false)
 
 #define MYPRINTF(dest, size, fmt, ...) _snprintf_s(dest, size, size - 1, fmt, __VA_ARGS__)
+
+// Callable function based on address
+#define FUNC(address, return_t, callconv, name, ...) inline return_t (callconv* name)(__VA_ARGS__) = reinterpret_cast<decltype(name)>(address)
 
 /* ===== Structs ===== */
 
@@ -52,42 +46,6 @@ struct IFile : IFileBase
 	virtual size_t Size() const override final { return sizeof(T); }
 };
 
-// Here is a very basic example of a game struct and its adapter class
-// From here you can do your Save/Load(Dialog)ing and manually copy the member variables from the adapter to the game struct
-#if 0
-struct CSomeStruct
-{
-	// Must be between 0 and 10
-	int data_1;
-
-	// Must be exactly 5.0
-	float data_2;
-
-	// Can be anything
-	char data_3[8];
-};
-
-struct CSomeStructFile : public IFile
-{
-	CSomeStruct some_struct;
-
-	virtual bool Validate() override final
-	{
-		if (some_struct.data_1 < 0 || some_struct.data_1 > 10)
-		{
-			return false;
-		}
-
-		if (some_struct.data_2 != 5.0)
-		{
-			return false;
-		}
-
-		return true;
-	}
-};
-#endif
-
 class PatchInfo
 {
 	static inline std::unordered_map<uintptr_t, PatchInfo*> map;
@@ -105,6 +63,8 @@ public:
 	inline size_t Len() { return len; }
 
 	static PatchInfo* Find(uintptr_t address);
+
+	static void UndoAll();
 };
 
 // Wrapper for string literals, primarily used for template arguments
@@ -177,7 +137,7 @@ void Error(const char* message, ...);
 
 void PatchNOP(uintptr_t address, int count = 1);
 
-// !!! ASM FUNCTIONS ONLY !!!
+// Recommended to ONLY use for __declspec(naked) inline __asm only functions
 // NOTE: The jump instruction is 5 bytes
 void PatchJMP(uintptr_t address, void* asm_func, size_t patch_len = 5);
 
