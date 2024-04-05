@@ -17,6 +17,9 @@ public:
 	template <typename T>
 	using ValidateFn = bool(T);
 
+	// NOTE: Settings are initialized in BulbToys::Init(), way after all static and global variables
+	// Thus, the INI structure will be empty, as it hasn't been read from a file yet, and guarantees your settings will ALWAYS use their default values
+	// To avoid this behavior in modules for example, you can put settings in Init() (and copy the values to global variables for later use if necessary)
 	/* ===== I N T 3 2 ===== */
 	template <StringLiteral section, StringLiteral key, int default_value>
 	class Int32
