@@ -15,7 +15,7 @@ public:
 	template <StringLiteral name, uint8_t default_key>
 	class Hotkey
 	{
-		Settings::UInt8<"Hotkeys", name, default_key> key;
+		Settings::Key<"Hotkeys", name, default_key> key;
 		OnKeyDownFn* OnKeyDown;
 		OnKeyUpFn* OnKeyUp;
 	public:

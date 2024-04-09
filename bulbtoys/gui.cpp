@@ -439,6 +439,28 @@ bool MainWindow::Draw()
 		}
 	}
 
+	/* ===== [ V K M A P ] ===== */
+	if (ImGui::BulbToys_Menu("[VKMap]"))
+	{
+		auto settings = Settings::Get();
+		if (!settings)
+		{
+			ImGui::Text("Settings are uninitialized.");
+		}
+		else
+		{
+			for (int i = 0; i < 256; i++)
+			{
+				auto str = settings->VKToStr(i);
+
+				if (strcmp(str, "(none)"))
+				{
+					ImGui::Text("%-3d = %s", i, str);
+				}
+			}
+		}
+	}
+
 	/* ===== [ W I N D O W S ] ===== */
 	if (ImGui::BulbToys_Menu("[Windows]"))
 	{

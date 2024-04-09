@@ -180,6 +180,7 @@ bool PatchInfo::SanityCheck()
 		{
 			auto patch = iter->second;
 			patches += "\n- " + std::to_string(patch->address);
+			++iter;
 		}
 
 		Error("%d leftover patch(es)/hook(s) found: %s", leftovers, patches.c_str());

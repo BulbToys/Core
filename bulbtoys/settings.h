@@ -9,10 +9,17 @@ class Settings
 	static inline mINI::INIStructure ini;
 	static inline Settings* instance = nullptr;
 
+	using KeyMap = std::unordered_map<uint8_t, char*>;
+	KeyMap keys;
+
 	Settings(const char* filename);
+	~Settings();
 public:
 	static Settings* Get(const char* filename = nullptr);
 	void End();
+
+	inline char* VKToStr(uint8_t vk) { return keys.at(vk); }
+	uint8_t StrToVK(const char* str);
 
 	template <typename T>
 	using ValidateFn = bool(T);
@@ -187,5 +194,38 @@ public:
 		}
 
 		char(&Get())[size] { return value; }
+	};
+
+	/* ===== K E Y ===== */
+	template <StringLiteral section, StringLiteral key, uint8_t default_value>
+	class Key
+	{
+		inline static bool init = []() {
+			// 1. Can't call VKToStr() here, because our Settings have not been initialized yet
+			// 2. Key map is localized based on whichever language keyboard input you had selected on Windows when BulbToys Settings were initialized
+			//    To maintain compatibility between systems which may have different language keyboard inputs it's better to save the VK code instead
+			//    For ease of use, we will allow conversion from the key name to the VK code upon reading the setting (construction of Settings::Key)
+			Settings::ini[section.str][key.str] = std::to_string(default_value);
+			return true;
+		}();
+		uint8_t value = default_value;
+	public:
+		Key()
+		{
+			auto settings = Settings::Get();
+			if (settings)
+			{
+				value = settings->StrToVK(Settings::ini[section.str][key.str].c_str());
+				if (!value)
+				{
+					if (sscanf_s(Settings::ini[section.str][key.str].c_str(), "%hhu", &value) != 1)
+					{
+						value = default_value;
+					}
+				}
+			}
+		}
+
+		uint8_t& Get() { return value; }
 	};
 };
