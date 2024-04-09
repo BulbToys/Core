@@ -11,6 +11,11 @@ void GUI::CreateMainWindow()
 	new MainWindow();
 }
 
+void GUI::CloseAllWindows()
+{
+	IWindow::CloseAll();
+}
+
 GUI::Overlay::~Overlay()
 {
 	auto iter = panels.begin();
@@ -157,15 +162,14 @@ GUI::GUI(IDirect3DDevice9* device, HWND window)
 	ImGui_ImplWin32_Init(window);
 	ImGui_ImplDX9_Init(device);
 
-	// TODO: vtable patches do not work for these?
-	Hooks::Create(ID3D9_ENDSCENE(), &ID3DDevice9_EndScene_, &ID3DDevice9_EndScene);
-	Hooks::Create(ID3D9_RESET(), &ID3DDevice9_Reset_, &ID3DDevice9_Reset);
+	CREATE_VTABLE_PATCH(PtrVirtual<42>(reinterpret_cast<uintptr_t>(device)), ID3DDevice9_EndScene);
+	CREATE_VTABLE_PATCH(PtrVirtual<16>(reinterpret_cast<uintptr_t>(device)), ID3DDevice9_Reset);
 }
 
 GUI::~GUI()
 {
-	Hooks::Destroy(ID3D9_RESET());
-	Hooks::Destroy(ID3D9_ENDSCENE());
+	Unpatch(PtrVirtual<16>(reinterpret_cast<uintptr_t>(device)));
+	Unpatch(PtrVirtual<42>(reinterpret_cast<uintptr_t>(device)));
 
 	ImGui_ImplDX9_Shutdown();
 	ImGui_ImplWin32_Shutdown();
@@ -223,32 +227,34 @@ HRESULT __stdcall GUI::ID3DDevice9_EndScene_(IDirect3DDevice9* device)
 {
 	auto result = GUI::ID3DDevice9_EndScene(device);
 
-	// TODO: why does this fucking hook still exist even after the GUI has been destroyed ??????????
-	auto gui = GUI::Get();
-	if (gui)
+	auto this_ = GUI::instance;
+	if (!this_)
 	{
-		ImGui_ImplDX9_NewFrame();
-		ImGui_ImplWin32_NewFrame();
-		ImGui::NewFrame();
-
-		// Push all windows from the queue into the list
-		auto& queue = IWindow::Queue();
-		auto iter = queue.begin();
-		while (iter != queue.end())
-		{
-			auto window = *iter;
-
-			queue.erase(iter);
-			IWindow::List().push_back(window);
-		}
-
-		// TODO: frame count fixes?
-		gui->Render();
-
-		ImGui::EndFrame();
-		ImGui::Render();
-		ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData());
+		Error("GUI::ID3DDevice9_EndScene_ called but no GUI instance.");
+		return result;// DIE();
 	}
+
+	ImGui_ImplDX9_NewFrame();
+	ImGui_ImplWin32_NewFrame();
+	ImGui::NewFrame();
+
+	// Push all windows from the queue into the list
+	auto& queue = IWindow::Queue();
+	auto iter = queue.begin();
+	while (iter != queue.end())
+	{
+		auto window = *iter;
+
+		queue.erase(iter);
+		IWindow::List().push_back(window);
+	}
+
+	// TODO: frame count fixes?
+	this_->Render();
+
+	ImGui::EndFrame();
+	ImGui::Render();
+	ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData());
 
 	return result;
 }
@@ -364,29 +370,16 @@ bool MainWindow::Draw()
 	/* ===== [ M A I N ] ===== */
 	if (ImGui::BulbToys_Menu("[Main]"))
 	{
-		// We want all windows to disable this button once it's been clicked
-		static bool disable_detach = false;
-		if (disable_detach)
-		{
-			ImGui::BeginDisabled();
-		}
-
 		// Detach & Confirm
 		if (ImGui::Button("Detach"))
 		{
 			if (this->confirm_close)
 			{
 				IO::Get()->Detach();
-				disable_detach = true;
 			}
 		}
 		ImGui::SameLine();
 		ImGui::Checkbox("Confirm", &this->confirm_close);
-
-		if (disable_detach)
-		{
-			ImGui::EndDisabled();
-		}
 
 		ImGui::Separator();
 
@@ -434,6 +427,11 @@ bool MainWindow::Draw()
 	/* ===== [ M O D U L E S ] ===== */
 	if (ImGui::BulbToys_Menu("[Modules]"))
 	{
+		if (!Module::First())
+		{
+			ImGui::Text("No modules loaded.");
+		}
+
 		for (auto iter = Module::First(); iter; iter = iter->Next())
 		{
 			ImGui::BulbToys_AddyLabel(reinterpret_cast<uintptr_t>(iter), "- %s (%s%s%s)", iter->Name(),
@@ -444,14 +442,19 @@ bool MainWindow::Draw()
 	/* ===== [ W I N D O W S ] ===== */
 	if (ImGui::BulbToys_Menu("[Windows]"))
 	{
+		if (ImGui::Button("Close all"))
+		{
+			IWindow::CloseAll();
+		}
+
 		auto& list = IWindow::List();
 		int i = 0;
-		
+
 		for (auto iter = list.begin(); iter != list.end(); ++iter)
 		{
 			auto window = *iter;
 
-			char close[32] { 0 };
+			char close[32]{ 0 };
 			sprintf_s(close, 32, "X" "##Windows_X_%u", i++);
 
 			if (ImGui::Button(close))

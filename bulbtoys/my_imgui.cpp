@@ -179,6 +179,16 @@ IWindow::IWindow(const char* fmt, ...)
 	va_end(va);
 }
 
+void IWindow::CloseAll()
+{
+	auto iter = list.begin();
+	while (iter != list.end())
+	{
+		(*iter)->OpenedRef() = false;
+		++iter;
+	}
+}
+
 void IWindow::DestroyAll()
 {
 	auto iter = queue.begin();

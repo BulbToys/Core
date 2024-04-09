@@ -61,7 +61,7 @@ bool IFileBase::Load(const char* filename, bool allow_undersize)
 		char* buffer = new char[size];
 
 		fseek(file, 0, SEEK_END);
-		int len = ftell(file);
+		size_t len = ftell(file);
 		fseek(file, 0, SEEK_SET);
 
 		if (len > size || (!allow_undersize && len < size))

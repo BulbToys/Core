@@ -94,7 +94,7 @@ public:
 		{
 			if (Settings::Get())
 			{
-				if (sscanf_s(Settings::ini[section.str][key.str].c_str(), "%u", &value) == 1)
+				if (sscanf_s(Settings::ini[section.str][key.str].c_str(), "%hhu", &value) == 1)
 				{
 					if (Validate)
 					{

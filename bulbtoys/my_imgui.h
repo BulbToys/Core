@@ -80,5 +80,6 @@ public:
 	static auto& List() { return list; }
 	static auto& Queue() { return queue; }
 
+	static void CloseAll();
 	static void DestroyAll();
 };

@@ -109,6 +109,8 @@ bool BulbToys::Init(BulbToys::SetupParams& params, bool thread)
 	{
 		GUI::Get(params.device, window);
 	}
+
+	return true;
 }
 
 void BulbToys::End()
@@ -144,7 +146,7 @@ void BulbToys::End()
 	}
 
 	// Final sanity check to make sure all our patches and hooks are gone
-	if (PatchInfo::SanityCheck())
+	if (!PatchInfo::SanityCheck())
 	{
 		DIE();
 	}

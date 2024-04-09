@@ -4,17 +4,22 @@
 IO::IO(HWND window)
 {
 	this->window = window;
-	IO::original_wndproc = reinterpret_cast<WNDPROC>(SetWindowLongPtr(window, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(IO::WndProc)));
+	this->original_wndproc = reinterpret_cast<WNDPROC>(SetWindowLongPtr(window, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(IO::WndProc)));
 }
 
 IO::~IO()
 {
-	SetWindowLongPtr(this->window, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(IO::original_wndproc));
+	SetWindowLongPtr(this->window, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(this->original_wndproc));
 }
 
 LRESULT CALLBACK IO::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	auto this_ = IO::instance;
+	if (!this_)
+	{
+		Error("IO::WndProc called but no IO instance.");
+		return 0L;// DIE();
+	}
 
 	if (uMsg == WM_KEYDOWN)
 	{

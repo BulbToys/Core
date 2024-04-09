@@ -17,6 +17,9 @@ class GUI
 	static void CreateMainWindow();
 	IO::Hotkey<"CreateMainWindow", VK_F9> create_main_window { GUI::CreateMainWindow };
 
+	static void CloseAllWindows();
+	IO::Hotkey<"CloseAllWindows", VK_F8> close_all_windows { GUI::CloseAllWindows };
+
 	class Overlay
 	{
 		std::vector<IPanel*> panels;
@@ -33,12 +36,10 @@ class GUI
 
 	void Render();
 
-	#define ID3D9_ENDSCENE() Virtual<42>(reinterpret_cast<uintptr_t>(device))
 	using DxEndSceneFn = long(__stdcall)(IDirect3DDevice9*);
 	static DxEndSceneFn ID3DDevice9_EndScene_;
 	static inline DxEndSceneFn* ID3DDevice9_EndScene = nullptr;
 
-	#define ID3D9_RESET() Virtual<16>(reinterpret_cast<uintptr_t>(device))
 	using DxResetFn = long(__stdcall)(IDirect3DDevice9*, D3DPRESENT_PARAMETERS*);
 	static DxResetFn ID3DDevice9_Reset_;
 	static inline DxResetFn* ID3DDevice9_Reset = nullptr;
