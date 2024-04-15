@@ -11,9 +11,6 @@ namespace BulbToys
 		// Handle to the module instance, given by DllMain
 		HMODULE instance = 0;
 
-		// Pointer to the Direct3D device used by the game. Can be nullptr, in which case GetDevice will be used instead
-		IDirect3DDevice9* device = nullptr;
-
 		// Pointer to the function that gets called indefinitely by the created thread until a device is returned
 		// In case the device is NOT nullptr, this function is unused
 		// Can be nullptr, but if the device is also nullptr, IO and GUI functionality will not be available

@@ -72,34 +72,33 @@ bool BulbToys::Init(BulbToys::SetupParams& params, bool thread)
 	// Modules
 	Modules::Init();
 
-	if (!params.device)
+	IDirect3DDevice9* device = nullptr;
+
+	if (!params.GetDevice)
 	{
-		if (!params.GetDevice)
+		// Partial success - no IO or GUI
+		return true;
+	}
+
+	if (thread)
+	{
+		while (!(device = params.GetDevice()))
+		{
+			Sleep(200);
+		}
+	}
+	else
+	{
+		if (!(device = params.GetDevice()))
 		{
 			// Partial success - no IO or GUI
 			return true;
-		}
-
-		if (thread)
-		{
-			while (!(params.device = params.GetDevice()))
-			{
-				Sleep(200);
-			}
-		}
-		else
-		{
-			if (!(params.device = params.GetDevice()))
-			{
-				// Partial success - no IO or GUI
-				return true;
-			}
 		}
 	}
 
 	// IO
 	D3DDEVICE_CREATION_PARAMETERS d3d_params;
-	params.device->GetCreationParameters(&d3d_params);
+	device->GetCreationParameters(&d3d_params);
 	auto window = d3d_params.hFocusWindow;
 	IO::Get(window);
 
@@ -107,7 +106,7 @@ bool BulbToys::Init(BulbToys::SetupParams& params, bool thread)
 	Settings::Bool<"BulbToys", "UseGUI", true> use_gui;
 	if (use_gui.Get())
 	{
-		GUI::Get(params.device, window);
+		GUI::Get(device, window);
 	}
 
 	return true;
