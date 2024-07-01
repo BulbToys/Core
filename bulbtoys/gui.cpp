@@ -41,7 +41,7 @@ void GUI::Overlay::Render()
 		ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoBackground))
 	{
 		// Splash logo
-		ImGui::Text("Powered by BulbToys %d (%07X) - Built on " __DATE__ " " __TIME__ ")", GIT_REV_COUNT + 1, GIT_SHA1);
+		ImGui::Text("Powered by BulbToys %d - Built on " __DATE__ " " __TIME__ ")", GIT_REV_COUNT + 1);
 
 		// Overlay panels
 		auto iter = panels.begin();
