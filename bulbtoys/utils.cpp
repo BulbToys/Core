@@ -239,3 +239,13 @@ void Unpatch(uintptr_t address, bool force_unpatch)
 	memcpy(reinterpret_cast<void*>(address), patch->Bytes(), patch->Len());
 	delete patch;
 }
+
+int WideStringToString(wchar_t* wide_str, size_t wide_str_len, char* str = nullptr, size_t str_len = 0)
+{
+	return WideCharToMultiByte(CP_UTF8, 0, wide_str, wide_str_len, str, str_len, NULL, NULL);
+}
+
+int StringToWideString(char* str, size_t str_len, wchar_t* wide_str = nullptr, size_t wide_str_len = 0)
+{
+	return MultiByteToWideChar(CP_UTF8, 0, str, str_len, wide_str, wide_str_len);
+}
