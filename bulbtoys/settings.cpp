@@ -39,14 +39,18 @@ Settings::Settings(const char* filename)
 	{
 		auto& setting = Settings::ini[it.first][it.second];
 
-		auto vk = this->StrToVK(setting.c_str());
-		if (vk)
+		uint8_t _;
+		if (sscanf_s(setting.c_str(), "0x%02hhx", &_) != 1)
 		{
-			setting = std::format("{:#02x}", vk);
-		}
-		else
-		{
-			setting = INVALID_KEY;
+			auto vk = this->StrToVK(setting.c_str());
+			if (vk)
+			{
+				setting = std::format("{:#02x}", vk);
+			}
+			else
+			{
+				setting = INVALID_KEY;
+			}
 		}
 	}
 

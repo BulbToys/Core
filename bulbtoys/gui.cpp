@@ -515,7 +515,7 @@ bool MainWindow::Draw()
 			{
 				auto str = settings->VKToStr(i);
 
-				if (strcmp(str, "(none)"))
+				if (strcmp(str, INVALID_KEY))
 				{
 					ImGui::Text("%-3d = %s", i, str);
 				}

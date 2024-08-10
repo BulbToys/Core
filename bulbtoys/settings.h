@@ -6,7 +6,7 @@
 
 #include <format>
 
-#define INVALID_KEY "(none)"
+#define INVALID_KEY "(invalid)"
 
 class Settings
 {
@@ -19,8 +19,6 @@ class Settings
 	using KeyMap = std::unordered_map<uint8_t, char*>;
 	KeyMap keys;
 
-	char keyboard_layout[KL_NAMELENGTH];
-
 	Settings(const char* filename);
 	~Settings();
 
@@ -29,9 +27,6 @@ class Settings
 public:
 	static Settings* Get(const char* filename = nullptr);
 	void End();
-
-	//void RegenerateKeyMap();
-	//inline char* GetKeyboardLayout() { return keyboard_layout; }
 
 	inline char* VKToStr(uint8_t vk) { return keys.at(vk); }
 	uint8_t StrToVK(const char* str);
