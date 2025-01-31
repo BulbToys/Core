@@ -84,7 +84,7 @@ GUI::FrameCalc::FrameCalc()
 
 	// Only psychopaths use mixed case here
 	if (!strcmp(value, "early") || !strcmp(value, "EARLY"))
-	{ 
+	{
 		this->type = Type::Early;
 	}
 	if (!strcmp(value, "late") || !strcmp(value, "LATE"))
